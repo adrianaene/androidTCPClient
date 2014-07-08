@@ -12,7 +12,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.security.acl.LastOwnerException;
+import java.util.HashMap;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -22,10 +25,12 @@ public class TCPClient {
  
     private String serverMessage;
     public static final String SERVERIP = "192.168.95.1"; //your computer IP address
-    public static final int SERVERPORT = 4441;
+    public static final int SERVERPORT = 4444;
     private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
- 
+    public boolean sendPictures = false;
+    public ServerClient serverClient;
+    private static HashMap<Integer, String> picturesHashMap = new HashMap<>();
     PrintWriter out;
     BufferedReader in;
     Socket socket;
@@ -41,6 +46,9 @@ public class TCPClient {
      * Sends the message entered by client to the server
      * @param message text entered by client
      */
+    public static HashMap<Integer, String> getPicturesHashMap() {
+		return picturesHashMap;
+	}
     public void sendMessage(String message){
         if (out != null && !out.checkError()) {
             out.println(message);
@@ -59,7 +67,8 @@ public class TCPClient {
         try {
             //here you must put your computer's IP address.
             InetAddress serverAddr = InetAddress.getByName(SERVERIP);
- 
+            serverClient = new ServerClient(SERVERPORT);
+    		serverClient.start();
             Log.e("TCP Client", "C: Connecting...");
  
             //create a socket to make the connection with the server
@@ -77,6 +86,7 @@ public class TCPClient {
                 boolean toReceivePictures = false;
                 int len = 0;
                 int nr = 0;
+                int position = 0;
                 //in this while the client listens for the messages sent by the server
                 while (mRun) {
                 	if (toReceive) {
@@ -99,6 +109,7 @@ public class TCPClient {
 	                		//File file = new File("res/newfile");
 	                		//OutputStream fos = new FileOutputStream(file);
 	                		
+	                		Log.d("FILE", "want " + len + " bytes");
 	                		int offset = 0;
 	                		while(len > 0){
 	                			Log.e("bla", "remaining " + len);
@@ -112,7 +123,7 @@ public class TCPClient {
 	                			
 	                			len = len - bytesRead;
 	                			offset += bytesRead;
-	                			Log.d("FILE", "downloaded " + len * 100.0 / mybytearray.length);
+//	                			Log.d("FILE", "downloaded " + len * 100.0 / mybytearray.length);
 	                		}
 	                		
 	                		Log.d("FILE", "image downloaded");
@@ -142,6 +153,13 @@ public class TCPClient {
 
                 	serverMessage = in.readLine();
                 	
+                	if(serverMessage.startsWith("reply")){
+                		String ip = serverMessage.substring(6,serverMessage.lastIndexOf(" "));
+                		Integer port = Integer.parseInt(serverMessage.substring(serverMessage.lastIndexOf(" ") + 1)); 
+                		Socket socketClient = new Socket(InetAddress.getByName(ip), port);
+                		ServerClient serverClient = new ServerClient(port);
+                	}
+                	
                 	if(serverMessage.startsWith("SEND_FILE")) {
                 		Log.d("FILE", "buffer = " + serverMessage.substring(9));
 	                	len = Integer.parseInt(serverMessage.substring(9));
@@ -150,22 +168,34 @@ public class TCPClient {
 	                	Log.d("FILE", "to receive pictures = " + len);
                 	}
                 	
+                	if(serverMessage.startsWith("sendimage")){
+                		
+                		picturesHashMap.put(position, serverMessage.substring(10,21));
+                		Log.d("HASH", serverMessage.substring(10,21) + "  " + position +"  " + serverMessage.substring(21));
+                		position++;
+                	}
+                	
+                	if(nr == (position + 1)){
+                		sendPictures = true;
+                	}
+                	
                 	if(serverMessage.startsWith("GET_PICTURES")) {
                 		Log.d("PICTURE", "buffer = " + serverMessage.substring(12));
 	                	nr = Integer.parseInt(serverMessage.substring(12));
 	                	toReceivePictures = true;
-	                	
+	                	position = 0 ;
 //	                	Log.d("PICTURE", "to receive = " + nr);
                 	}
-                    if (serverMessage != null && mMessageListener != null && !serverMessage.startsWith("SEND_FILE")) {
+                    
+                	if (serverMessage != null && mMessageListener != null && !serverMessage.startsWith("SEND_FILE")) {
                         //call the method messageReceived from MyActivity class
                         mMessageListener.messageReceived(serverMessage);
+                        Log.d("Receive", serverMessage);
                     }
                     serverMessage = null;
                 }
  
                 Log.e("RESPONSE FROM SERVER", "S: Received Message: '" + serverMessage + "'");
- 
             } catch (IOException e) {
  
                 Log.e("TCP", "S: Error", e);
@@ -181,7 +211,6 @@ public class TCPClient {
             Log.e("TCP", "C: Error", e);
  
         }
- 
     }
  
     public InputStream getInputStream() throws IOException {
@@ -195,6 +224,7 @@ public class TCPClient {
     	boolean toReceicePictures = false;
     	int len = 0;
     	int nr = 0;
+    	int position = 0;
         public abstract void messageReceived(String message);
     }
 }

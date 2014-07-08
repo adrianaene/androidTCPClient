@@ -1,10 +1,11 @@
-
 package com.example.tcpclient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.View;
@@ -15,14 +16,14 @@ import android.widget.ImageView;
 
 public class ImageAdapter extends BaseAdapter {
 	private Context mContext;
-	private Bitmap bitmap;
-	public ImageAdapter(Context c, Bitmap bitmap) {
+	private HashMap<Integer, String> hashMap = new HashMap<>();
+	public ImageAdapter(Context c, HashMap<Integer, String> hashMap) {
 		mContext = c;
-		this.bitmap = bitmap;
+		this.hashMap = hashMap;
 	}
 
 	public int getCount() {
-		return 1;
+		return hashMap.size();
 	}
 
 	public Object getItem(int position) {
@@ -39,17 +40,35 @@ public class ImageAdapter extends BaseAdapter {
 		if (convertView == null) { // if it's not recycled, initialize some
 									// attributes
 			imageView = new ImageView(mContext);
-			imageView.setImageBitmap(bitmap);
-			imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+			imageView.setLayoutParams(new GridView.LayoutParams(200, 200));
 			imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 			imageView.setPadding(8, 8, 8, 8);
 		} else {
 			imageView = (ImageView) convertView;
 		}
-
+		 
+		 InputStream open = null;
+		try {
+		      open = PicturesActivity.manager.open(hashMap.get(position));
+		      Bitmap bitmap = BitmapFactory.decodeStream(open);
+		      // Assign the bitmap to an ImageView in this layout
+		      imageView.setImageBitmap(bitmap);
+		    } catch (IOException e) {
+		      e.printStackTrace();
+		    } finally {
+		      if (open != null) {
+		        try {
+		          open.close();
+		        } catch (IOException e) {
+		          e.printStackTrace();
+		        }
+		      }
+		    } 
+		
 		return imageView;
 	}
 
 	// references to our images
-	
+	//private Integer[] mThumbIds = { R.drawable.image01, R.drawable.image02,
+		//	R.drawable.image03 };
 }
