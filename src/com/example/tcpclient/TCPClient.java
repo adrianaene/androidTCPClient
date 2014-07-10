@@ -89,85 +89,9 @@ public class TCPClient {
                 int position = 0;
                 //in this while the client listens for the messages sent by the server
                 while (mRun) {
-                	if (toReceive) {
-                		try {
-	                		byte [] mybytearray ;
-	                		int bytesRead;
-	                		InputStream is = getInputStream();
-	                		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	                		
-//	                		for (int i = 0; i < len; i++) {
-//	                			byte byteToBeRead = (byte)is.read();
-//	                			baos.write(byteToBeRead);
-//	                			Log.d("FILE", "downloading " + (i * 100.0 / len) + "%");
-//	                		}
-//	                		mybytearray = baos.toByteArray();
-	                		
-	                		mybytearray = new byte[len];
-//	                		bytesRead = is.read(mybytearray, 0, mybytearray.length);
-	                		
-	                		//File file = new File("res/newfile");
-	                		//OutputStream fos = new FileOutputStream(file);
-	                		
-	                		Log.d("FILE", "want " + len + " bytes");
-	                		int offset = 0;
-	                		while(len > 0){
-	                			Log.e("bla", "remaining " + len);
-	                			bytesRead = is.read(mybytearray, offset, len);
-	                			if(bytesRead == -1)
-	                			{
-	                				Log.e("bla", "jighkd");
-	                				break;
-	                			}
-	                			//fos.write(mybytearray, offset, bytesRead);
-	                			
-	                			len = len - bytesRead;
-	                			offset += bytesRead;
-//	                			Log.d("FILE", "downloaded " + len * 100.0 / mybytearray.length);
-	                		}
-	                		
-	                		Log.d("FILE", "image downloaded");
-	                		Bitmap bmp;
-	                		bmp = BitmapFactory.decodeByteArray(mybytearray, 0, mybytearray.length);
-	                		final Bitmap mutableBitmap = bmp.copy(Bitmap.Config.ARGB_8888, true);
-	                		
-	                		final ImageView iv = (ImageView)MyActivity.getInstance().findViewById(R.id.superview);
-	                		iv.post(new Runnable() {
-	                			@Override
-	                			public void run() {
-	                				iv.setImageBitmap(mutableBitmap);
-	                			}
-	                		});
-	                		
-	                		
-	                		Log.d("FILE", new String(mybytearray));
-	                		len = 0;
-	                		toReceive = false;
-	                		
-	                		continue;
-                		} catch (IOException e) {
-                			e.printStackTrace();
-                		}
-                		
-                	} 
 
                 	serverMessage = in.readLine();
-                	
-                	if(serverMessage.startsWith("reply")){
-                		String ip = serverMessage.substring(6,serverMessage.lastIndexOf(" "));
-                		Integer port = Integer.parseInt(serverMessage.substring(serverMessage.lastIndexOf(" ") + 1)); 
-                		Socket socketClient = new Socket(InetAddress.getByName(ip), port);
-                		ServerClient serverClient = new ServerClient(port);
-                	}
-                	
-                	if(serverMessage.startsWith("SEND_FILE")) {
-                		Log.d("FILE", "buffer = " + serverMessage.substring(9));
-	                	len = Integer.parseInt(serverMessage.substring(9));
-	                	toReceive = true;
-	                	
-	                	Log.d("FILE", "to receive pictures = " + len);
-                	}
-                	
+                	Log.d("Server", serverMessage);
                 	if(serverMessage.startsWith("sendimage")){
                 		
                 		picturesHashMap.put(position, serverMessage.substring(10,21));
@@ -184,10 +108,9 @@ public class TCPClient {
 	                	nr = Integer.parseInt(serverMessage.substring(12));
 	                	toReceivePictures = true;
 	                	position = 0 ;
-//	                	Log.d("PICTURE", "to receive = " + nr);
                 	}
                     
-                	if (serverMessage != null && mMessageListener != null && !serverMessage.startsWith("SEND_FILE")) {
+                	if (serverMessage != null && mMessageListener != null && !serverMessage.startsWith("SEND_FILE") ) {
                         //call the method messageReceived from MyActivity class
                         mMessageListener.messageReceived(serverMessage);
                         Log.d("Receive", serverMessage);

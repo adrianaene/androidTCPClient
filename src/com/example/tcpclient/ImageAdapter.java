@@ -64,11 +64,6 @@ public class ImageAdapter extends BaseAdapter {
 		        }
 		      }
 		    } 
-		
 		return imageView;
 	}
-
-	// references to our images
-	//private Integer[] mThumbIds = { R.drawable.image01, R.drawable.image02,
-		//	R.drawable.image03 };
 }
