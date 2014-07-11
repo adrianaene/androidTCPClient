@@ -81,7 +81,6 @@ public class TCPClient {
                 Log.e("TCP Client", "C: Done.");
                 //receive the message which the server sends back
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
- 
                 boolean toReceive = false;
                 boolean toReceivePictures = false;
                 int len = 0;
@@ -91,9 +90,8 @@ public class TCPClient {
                 while (mRun) {
 
                 	serverMessage = in.readLine();
-                	Log.d("Server", serverMessage);
+                	Log.d("Server: ", serverMessage);
                 	if(serverMessage.startsWith("sendimage")){
-                		
                 		picturesHashMap.put(position, serverMessage.substring(10,21));
                 		Log.d("HASH", serverMessage.substring(10,21) + "  " + position +"  " + serverMessage.substring(21));
                 		position++;

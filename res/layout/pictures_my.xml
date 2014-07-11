@@ -9,6 +9,8 @@
          android:layout_height="fill_parent"
          android:columnWidth="90dp"
          android:gravity="center"
+         android:clickable="false"
+		 android:focusable="false"
          android:horizontalSpacing="10dp"
          android:numColumns="2"
          android:stretchMode="columnWidth"
